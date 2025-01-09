@@ -6,6 +6,6 @@ import (
 )
 
 type CompanyRepository interface {
-	GetCompanies() ([]entity.Company, error)
+	GetCompanies(page, limit int, search string) ([]entity.Company, int, error)
 	SaveCompany(company dto.RequestCompanies) error
 }

@@ -1,6 +1,8 @@
 package dto
 
-import "job-posting/internal/entity"
+import (
+	"job-posting/internal/entity"
+)
 
 type ResponseCompanies struct {
 	Status    string           `json:"status"`
@@ -16,6 +18,18 @@ type ResponseJob struct {
 
 type RequestCompanies struct {
 	Name string `json:"name" validate:"required"`
+}
+
+type CompaniesResponse struct {
+	Status     string           `json:"status"`
+	Data       []entity.Company `json:"data"`
+	Pagination Pagination       `json:"pagination"`
+	Message    string           `json:"message"`
+}
+
+type Pagination struct {
+	TotalPages int `json:"total_pages"`
+	TotalItems int `json:"total_items"`
 }
 
 type RequestJobs struct {

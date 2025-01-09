@@ -19,28 +19,41 @@ func NewCompanyRepository(DB *sql.DB) repository.CompanyRepository {
 	}
 }
 
-func (c *companyRepositoryImpl) GetCompanies() ([]entity.Company, error) {
-	var companies []entity.Company
+func (c *companyRepositoryImpl) GetCompanies(page, limit int, search string) ([]entity.Company, int, error) {
+	var (
+		companies []entity.Company
+		totalRows int
+		offset    = (page - 1) * limit
+	)
 
-	rows, err := c.DB.Query("SELECT id, name FROM companies")
+	countQuery := "SELECT COUNT(*) FROM companies WHERE name LIKE ?"
+	searchTerm := "%" + search + "%"
+	err := c.DB.QueryRow(countQuery, searchTerm).Scan(&totalRows)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+
+	query := "SELECT id, name FROM companies WHERE name LIKE ? LIMIT ? OFFSET ?"
+	rows, err := c.DB.Query(query, searchTerm, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var company entity.Company
 		err := rows.Scan(&company.ID, &company.Name)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		companies = append(companies, company)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return companies, nil
+	return companies, totalRows, nil
 }
 
 func (c *companyRepositoryImpl) SaveCompany(company dto.RequestCompanies) error {

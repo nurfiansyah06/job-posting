@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"job-posting/internal/controller/companiescont"
 	"job-posting/internal/controller/jobscont"
 	"job-posting/internal/db"
@@ -19,9 +18,9 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		panic(err)
 	}
 
 	db, err := db.ConnectDB()
@@ -30,19 +29,15 @@ func main() {
 	}
 	defer db.Close()
 
-	_, err = redis.ConnectRedis()
-	if err != nil {
-		panic(err)
-	}
-
+	redisClient := redis.NewRedisClient()
 	validate := validator.New()
 
 	companyRepository := company.NewCompanyRepository(db)
-	companyUsecase := companies.NewCompaniesUsecaseImpl(companyRepository)
+	companyUsecase := companies.NewCompaniesUsecaseImpl(companyRepository, redisClient)
 	companyController := companiescont.NewCompaniesControllerImpl(companyUsecase, validate)
 
 	jobRepository := job.NewJobRepositoryImpl(db)
-	jobUsecase := jobs.NewJobsUsecaseImpl(jobRepository)
+	jobUsecase := jobs.NewJobsUsecaseImpl(jobRepository, redisClient)
 	jobController := jobscont.NewJobsControllerImpl(jobUsecase, validate)
 
 	router := gin.Default()

@@ -1,10 +1,12 @@
 package companiescont
 
 import (
+	"fmt"
 	"job-posting/internal/constant"
 	"job-posting/internal/dto"
 	"job-posting/internal/usecase"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -23,7 +25,20 @@ func NewCompaniesControllerImpl(companiesUsecase usecase.CompanyUsecase, validat
 }
 
 func (company *CompaniesControllerImpl) GetCompanies(c *gin.Context) {
-	companies, err := company.companiesUsecase.GetCompanies()
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		limit = 2
+	}
+
+	search := c.Request.URL.Query().Get("search")
+	fmt.Println("search", search)
+
+	companies, err := company.companiesUsecase.GetCompanies(page, limit, search)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ResponseCompanies{
 			Status:  constant.StatusError,
@@ -32,13 +47,17 @@ func (company *CompaniesControllerImpl) GetCompanies(c *gin.Context) {
 		return
 	}
 
-	responseCompanies := dto.ResponseCompanies{
-		Status:    constant.StatusSuccess,
-		Companies: companies,
-		Message:   "Success get companies",
-	}
+	// responseCompanies := dto.CompaniesResponse{
+	// 	Status:  constant.StatusSuccess,
+	// 	Data:    companies,
+	// 	Message: "Success get companies",
+	// 	Pagination: dto.Pagination{
+	// 		TotalPages: 0,
+	// 		TotalItems: 10,
+	// 	},
+	// }
 
-	c.JSON(http.StatusOK, responseCompanies)
+	c.JSON(http.StatusOK, companies)
 }
 
 func (company *CompaniesControllerImpl) SaveCompany(c *gin.Context) {

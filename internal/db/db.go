@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -19,6 +18,5 @@ func ConnectDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	fmt.Println("Successfully connected!")
 	return db, nil
 }
