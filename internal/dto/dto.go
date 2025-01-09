@@ -20,6 +20,13 @@ type RequestCompanies struct {
 	Name string `json:"name" validate:"required"`
 }
 
+type JobsResponse struct {
+	Status     string       `json:"status"`
+	Data       []entity.Job `json:"data"`
+	Pagination Pagination   `json:"pagination"`
+	Message    string       `json:"message"`
+}
+
 type CompaniesResponse struct {
 	Status     string           `json:"status"`
 	Data       []entity.Company `json:"data"`

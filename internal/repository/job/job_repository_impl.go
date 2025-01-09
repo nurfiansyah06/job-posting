@@ -2,6 +2,7 @@ package job
 
 import (
 	"database/sql"
+	"fmt"
 	"job-posting/internal/dto"
 	"job-posting/internal/entity"
 
@@ -18,28 +19,40 @@ func NewJobRepositoryImpl(db *sql.DB) *jobRepositoryImpl {
 	}
 }
 
-func (j *jobRepositoryImpl) GetJobs() ([]entity.Job, error) {
-	var jobs []entity.Job
+func (j *jobRepositoryImpl) GetJobs(page, limit int, search string) ([]entity.Job, int, error) {
+	var (
+		jobs      []entity.Job
+		totalRows int
+		offset    = (page - 1) * limit
+	)
 
-	rows, err := j.DB.Query("SELECT id, title, description, company_id FROM jobs")
+	countQuery := "SELECT COUNT(*) FROM jobs WHERE title LIKE ? OR description LIKE ?"
+	err := j.DB.QueryRow(countQuery, "%"+search+"%", "%"+search+"%").Scan(&totalRows)
 	if err != nil {
-		return nil, err
+		return nil, 0, fmt.Errorf("error counting rows: %w", err)
 	}
+
+	query := "SELECT id,title, description, company_id FROM jobs WHERE title LIKE ? OR description LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ? "
+	rows, err := j.DB.Query(query, "%"+search+"%", "%"+search+"%", limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("error fetching jobs: %w", err)
+	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var job entity.Job
 		err := rows.Scan(&job.ID, &job.Title, &job.Description, &job.CompanyId)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		jobs = append(jobs, job)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return jobs, nil
+	return jobs, totalRows, nil
 }
 
 func (j *jobRepositoryImpl) SaveJob(job dto.RequestJobs) error {

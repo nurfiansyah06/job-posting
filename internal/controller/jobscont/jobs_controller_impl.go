@@ -5,6 +5,7 @@ import (
 	"job-posting/internal/dto"
 	"job-posting/internal/usecase"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -23,7 +24,19 @@ func NewJobsControllerImpl(jobsUsecase usecase.JobUsecase, validator *validator.
 }
 
 func (j *JobsControllerImpl) GetJobs(c *gin.Context) {
-	jobs, err := j.jobsUsecase.GetJobs()
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		limit = 2
+	}
+
+	search := c.Request.URL.Query().Get("search")
+
+	jobs, err := j.jobsUsecase.GetJobs(page, limit, search)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ResponseJob{
 			Status:  constant.StatusError,
@@ -32,13 +45,7 @@ func (j *JobsControllerImpl) GetJobs(c *gin.Context) {
 		return
 	}
 
-	responseJobs := dto.ResponseJob{
-		Status:  constant.StatusSuccess,
-		Job:     jobs,
-		Message: "Success get jobs",
-	}
-
-	c.JSON(http.StatusOK, responseJobs)
+	c.JSON(http.StatusOK, jobs)
 }
 
 func (j *JobsControllerImpl) SaveJob(c *gin.Context) {

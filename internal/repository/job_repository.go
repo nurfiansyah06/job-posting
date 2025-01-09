@@ -6,6 +6,6 @@ import (
 )
 
 type JobRepository interface {
-	GetJobs() ([]entity.Job, error)
+	GetJobs(page, limit int, search string) ([]entity.Job, int, error)
 	SaveJob(job dto.RequestJobs) error
 }

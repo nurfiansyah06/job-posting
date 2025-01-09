@@ -3,7 +3,6 @@ package companies
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"job-posting/internal/constant"
 	"job-posting/internal/dto"
 	"job-posting/internal/redis"
@@ -28,7 +27,7 @@ func (c *CompaniesUsecaseImpl) GetCompanies(page, limit int, search string) (dto
 		page = 1
 	}
 	if limit < 1 {
-		limit = 10
+		limit = 5
 	}
 
 	companyRedis, err := c.redisClient.Client.Get(context.Background(), constant.KeyRedisCompany).Result()
@@ -41,7 +40,7 @@ func (c *CompaniesUsecaseImpl) GetCompanies(page, limit int, search string) (dto
 
 	companies, totalRows, err := c.companyRepo.GetCompanies(page, limit, search)
 	if err != nil {
-		return dto.CompaniesResponse{}, fmt.Errorf("error when get companies", err.Error())
+		return dto.CompaniesResponse{}, err
 	}
 
 	companiesResp := dto.CompaniesResponse{

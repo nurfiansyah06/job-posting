@@ -2,10 +2,9 @@ package usecase
 
 import (
 	"job-posting/internal/dto"
-	"job-posting/internal/entity"
 )
 
 type JobUsecase interface {
-	GetJobs() ([]entity.Job, error)
+	GetJobs(page, limit int, search string) (dto.JobsResponse, error)
 	SaveJob(job dto.RequestJobs) error
 }

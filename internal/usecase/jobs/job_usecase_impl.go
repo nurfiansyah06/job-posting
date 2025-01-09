@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"job-posting/internal/constant"
 	"job-posting/internal/dto"
-	"job-posting/internal/entity"
 	"job-posting/internal/redis"
 	"job-posting/internal/repository"
 	"time"
@@ -24,30 +23,48 @@ func NewJobsUsecaseImpl(jobRepo repository.JobRepository, redisClient *redis.Red
 	}
 }
 
-func (j *JobsUsecaseImpl) GetJobs() ([]entity.Job, error) {
+func (j *JobsUsecaseImpl) GetJobs(page, limit int, search string) (dto.JobsResponse, error) {
 	cachedJobs, err := j.redisClient.Client.Get(context.Background(), constant.KeyRedis).Result()
 	if err == nil {
-		var jobs []entity.Job
+		var jobs dto.JobsResponse
 		if err := json.Unmarshal([]byte(cachedJobs), &jobs); err == nil {
 			return jobs, nil
 		}
 	}
 
-	jobs, err := j.jobRepo.GetJobs()
+	if page < 1 {
+		page = 1
+	}
+
+	if limit < 1 {
+		limit = 5
+	}
+
+	jobs, totalRows, err := j.jobRepo.GetJobs(page, limit, search)
 	if err != nil {
-		return nil, err
+		return dto.JobsResponse{}, err
 	}
 
 	if len(jobs) == 0 {
-		return nil, fmt.Errorf("No jobs found")
+		return dto.JobsResponse{}, fmt.Errorf("No jobs found")
 	}
 
 	jobsJSON, err := json.Marshal(jobs)
 	if err == nil {
-		j.redisClient.Client.Set(context.Background(), constant.KeyRedis, jobsJSON, 5*time.Minute) // Cache for 5 minutes
+		j.redisClient.Client.Set(context.Background(), constant.KeyRedis, jobsJSON, 5*time.Minute)
 	}
 
-	return jobs, nil
+	jobsResp := dto.JobsResponse{
+		Status: constant.StatusSuccess,
+		Data:   jobs,
+		Pagination: dto.Pagination{
+			TotalPages: page,
+			TotalItems: totalRows,
+		},
+		Message: "Get All Job",
+	}
+
+	return jobsResp, nil
 }
 
 func (j *JobsUsecaseImpl) SaveJob(job dto.RequestJobs) error {

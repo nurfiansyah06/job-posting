@@ -1,7 +1,6 @@
 package companiescont
 
 import (
-	"fmt"
 	"job-posting/internal/constant"
 	"job-posting/internal/dto"
 	"job-posting/internal/usecase"
@@ -36,7 +35,6 @@ func (company *CompaniesControllerImpl) GetCompanies(c *gin.Context) {
 	}
 
 	search := c.Request.URL.Query().Get("search")
-	fmt.Println("search", search)
 
 	companies, err := company.companiesUsecase.GetCompanies(page, limit, search)
 	if err != nil {
@@ -46,16 +44,6 @@ func (company *CompaniesControllerImpl) GetCompanies(c *gin.Context) {
 		})
 		return
 	}
-
-	// responseCompanies := dto.CompaniesResponse{
-	// 	Status:  constant.StatusSuccess,
-	// 	Data:    companies,
-	// 	Message: "Success get companies",
-	// 	Pagination: dto.Pagination{
-	// 		TotalPages: 0,
-	// 		TotalItems: 10,
-	// 	},
-	// }
 
 	c.JSON(http.StatusOK, companies)
 }
