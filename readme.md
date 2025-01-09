@@ -26,3 +26,6 @@ go mod tidy
 ```
 go run main.go
 ```
+
+### Documentation API
+- [Postman](https://documenter.getpostman.com/view/11932880/2sAYQUquck)
