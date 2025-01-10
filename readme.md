@@ -9,13 +9,13 @@ This repository create APIs to manage job postings for companies.
 ### Build with
 
 - [Go](https://golang.org/dl/) (version 1.23.4)
-- [Redis](https://redis.io/download) (for testing Redis integration)
+- [Redis](https://redis.io/download)
 - Dependencies managed using `go mod`.
 
 ### Instalation
 1. Clone the repository
 ```
-   git clone https://github.com/your-username/job-posting.git
+   git clone https://github.com/nurfiansyah06/job-posting.git
    cd job-posting
 ```
 2. Install dependencies
